@@ -1,0 +1,89 @@
+{% extends 'netflix_app/base.html' %}
+
+{% block title %}Year Analysis - Netflix Data{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Release Year Analysis</h1>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Content Released by Year</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="yearsChart" height="300"></canvas>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Year Trends</h5>
+        </div>
+        <div class="card-body">
+            <p>The chart above visualizes Netflix content releases by year, separated by content type:</p>
+            <ul>
+                <li><span class="badge bg-primary">Blue</span> - Movies</li>
+                <li><span class="badge bg-danger">Red</span> - TV Shows</li>
+            </ul>
+            <p>
+                Observe how the distribution between movies and TV shows has changed over time, 
+                with a significant increase in both types of content in recent years.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Parse the JSON data
+    const yearsData = JSON.parse('{{ years_data_json|safe }}');
+    
+    // Create chart
+    const ctx = document.getElementById('yearsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: yearsData.years,
+            datasets: [
+                {
+                    label: 'Movies',
+                    data: yearsData.movies,
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'TV Shows',
+                    data: yearsData.shows,
+                    backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    stacked: false,
+                    title: {
+                        display: true,
+                        text: 'Number of Titles'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Release Year'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

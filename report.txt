@@ -1,0 +1,224 @@
+**Netflix Movies and TV Shows Data Analysis and Web Application Development Report**
+
+### **1. Introduction**
+This report details the development process of a Netflix Movies and TV Shows data analysis and web application project. The project involves data acquisition, analysis, and visualization using Python libraries and the development of a Django-based web application to present insights.
+
+---
+
+### **2. Environment Setup**
+
+To begin, the project directory was created:
+```bash
+mkdir netflix_analysis_project
+cd netflix_analysis_project
+```
+A virtual environment was set up and activated:
+```bash
+python -m venv venv
+# Windows activation
+venv\Scripts\activate
+```
+Required dependencies were listed in `requirements.txt` and installed:
+```bash
+numpy
+pandas
+matplotlib
+scipy
+django
+```
+```bash
+pip install -r requirements.txt
+```
+Git was initialized for version control:
+```bash
+git init
+```
+A `.gitignore` file was created to exclude unnecessary files:
+```
+venv/
+__pycache__/
+*.pyc
+*.sqlite3
+.DS_Store
+```
+
+---
+
+### **3 Data Acquisition and Analysis**
+
+The dataset was obtained from Kaggle and saved in a `data/` directory:
+```bash
+mkdir data
+```
+A script for data analysis was created:
+```bash
+mkdir analysis
+touch analysis/netflix_analysis.py
+```
+Using Pandas, NumPy, and Matplotlib, the script:
+- Loaded and cleaned data
+- Performed exploratory analysis
+- Generated visualizations
+- Saved cleaned data for the Django application
+
+run the script with
+python analysis/netflix_analysis.py
+---
+
+The dataset was loaded into a Pandas DataFrame and explored:
+- Displayed basic dataset information
+- Identified missing values
+- Filled categorical missing values with 'Unknown'
+- Dropped rows with missing `date_added`
+
+#### **Exploratory Data Analysis (EDA)**
+- Counted unique values per column
+- Identified the most frequent content type
+- Determined the oldest and newest titles
+- Calculated average release year
+
+#### **Visualizations**
+- Bar chart of top 15 countries with most Netflix titles
+- Bar chart of top 15 directors on Netflix
+- Histogram of release year distribution
+- Content breakdown by decade
+- Trends of content types over recent years
+
+Results were saved as `netflix_analysis_results.png`.
+
+---
+
+### **4 Django Web Application Development**
+
+A Django project was initialized:
+```bash
+django-admin startproject netflix_project .
+```
+A Django app was created:
+```bash
+python manage.py startapp netflix_app
+```
+Settings were configured in `settings.py`, including database setup for SQLite.
+
+#### **Database Design**
+Models were created in `netflix_app/models.py` to represent the dataset:
+- `Country`
+- `Director`
+- `Category`
+- `NetflixTitle`
+
+Migrations were applied:
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+#### **5: Importing Data**
+A Django management command was created for data import:
+```bash
+mkdir -p netflix_app/management/commands
+```
+Initialization files were created:
+```bash
+touch netflix_app/management/__init__.py
+touch netflix_app/management/commands/__init__.py
+```
+The import script was placed in:
+```
+netflix_app/management/commands/import_netflix_data.py
+```
+The import was executed via:
+```bash
+python manage.py import_netflix_data ../data/netflix_titles.csv
+```
+
+#### **Advantages of This Approach**
+- Django integration and error handling
+- Progress tracking and reusable import command
+- Avoids duplicate entries
+- Supports multiple CSV files
+
+---
+
+#### **6. Development of Views and Templates**
+
+Views and templates were implemented to display analyses and visualizations, including:
+- `home.html`
+- `title_list.html`
+- `country_analysis.html`
+- `director_analysis.html`
+- `year_analysis.html`
+- `category_analysis.html`
+- `search.html`
+
+Bootstrap, inline styling and style tag was used in the styling this application, and URL routing was configured in `urls.py`.
+
+
+### **7 Testing and Documentation**
+
+The application was tested by running:
+```bash
+python manage.py runserver
+```
+And accessed at:
+```
+http://127.0.0.1:8000/
+```
+The following tests were performed:
+- Database migrations
+- Data import functionality
+- UI responsiveness and search functionality
+
+---
+
+### **8. Project Structure**
+The final project structure:
+```
+netflix_analysis_project/
+|
+analysis/
+data/
+netflix_project/
+├── netflix_project/
+|   |-- __pycache__
+│   ├── __init__.py
+|   |-- asgi
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── netflix_app/
+|   |---__pycache__
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── views.py
+│   ├── urls.py
+|   |---tests.py
+|   |---management
+|   |---migrations
+│   └── templates/
+│       └── netflix_app/
+│           ├── base.html
+│           ├── home.html
+|           |-- title_detail.html
+│           ├── title_list.html
+│           ├── country_analysis.html
+│           ├── director_analysis.html
+│           ├── year_analysis.html
+│           ├── category_analysis.html
+│           ├── search.html
+|-- db.sqlite3
+├── manage.py
+venv/
+netflix_analysis_results.png
+README.md
+report.txt
+reqirements.txt
+```
+---
+
+
+### **9. Conclusion**
+This project successfully analyzed Netflix Movies and TV Shows data, built a Django web application for visualization, and implemented structured data handling. It provides an interactive UI for users to explore Netflix content statistics efficiently.
+

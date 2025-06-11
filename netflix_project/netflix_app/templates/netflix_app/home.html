@@ -1,0 +1,181 @@
+{# netflix_app/templates/netflix_app/home.html #}
+
+{% extends 'netflix_app/base.html' %}
+
+{% block title %}Netflix Data Analysis Dashboard{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">Netflix Content Analysis Dashboard</h2>
+                <p class="card-text">
+                    Welcome to the Netflix data analysis dashboard. This platform provides insights and visualizations
+                    about Netflix's content library, allowing you to explore titles, analyze trends, and discover patterns.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="number">{{ total_titles }}</div>
+            <div class="label">Total Titles</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="number">{{ total_movies }}</div>
+            <div class="label">Movies</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="number">{{ total_shows }}</div>
+            <div class="label">TV Shows</div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="number">{{ total_countries }}</div>
+            <div class="label">Countries</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="number">{{ total_directors }}</div>
+            <div class="label">Directors</div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card">
+            <div class="number">{{ total_categories }}</div>
+            <div class="label">Categories</div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Content Type Distribution</h5>
+                <canvas id="typeChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Releases by Year</h5>
+                <canvas id="yearChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Latest Additions -->
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Latest Additions</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Type</th>
+                                <th>Release Year</th>
+                                <th>Date Added</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for title in latest_titles %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'netflix_app:title_detail' title.show_id %}">
+                                        {{ title.title }}
+                                    </a>
+                                </td>
+                                <td>{{ title.type }}</td>
+                                <td>{{ title.release_year }}</td>
+                                <td>{{ title.date_added }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <a href="{% url 'netflix_app:title_list' %}" class="btn btn-primary">View All Titles</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Content Type Distribution Chart
+    const typeData = {{ type_distribution_json|safe }};
+    const typeCtx = document.getElementById('typeChart').getContext('2d');
+    new Chart(typeCtx, {
+        type: 'pie',
+        data: {
+            labels: typeData.map(item => item.name),
+            datasets: [{
+                data: typeData.map(item => item.value),
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Releases by Year Chart
+    const yearData = {{ releases_by_year_json|safe }};
+    const yearCtx = document.getElementById('yearChart').getContext('2d');
+    new Chart(yearCtx, {
+        type: 'bar',
+        data: {
+            labels: yearData.years,
+            datasets: [{
+                label: 'Number of Titles',
+                data: yearData.counts,
+                backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,223 @@
+{# netflix_app/templates/netflix_app/title_list.html #}
+
+{% extends 'netflix_app/base.html' %}
+
+{% block title %}Browse Netflix Titles{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Filters Sidebar -->
+    <div class="col-md-3 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Filters</h5>
+            </div>
+            <div class="card-body">
+                <form method="get" action="{% url 'netflix_app:title_list' %}">
+                    <!-- Keep search query if present -->
+                    {% if search_query %}
+                    <input type="hidden" name="q" value="{{ search_query }}">
+                    {% endif %}
+                    
+                    <!-- Content Type Filter -->
+                    <div class="mb-3">
+                        <label class="form-label">Content Type</label>
+                        <select name="type" class="form-select">
+                            <option value="">All Types</option>
+                            <option value="Movie" {% if selected_type == 'Movie' %}selected{% endif %}>Movies</option>
+                            <option value="TV Show" {% if selected_type == 'TV Show' %}selected{% endif %}>TV Shows</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Category Filter -->
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"i" %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Country Filter -->
+                    <div class="mb-3">
+                        <label class="form-label">Country</label>
+                        <select name="country" class="form-select">
+                            <option value="">All Countries</option>
+                            {% for country in countries %}
+                            <option value="{{ country.id }}" {% if selected_country == country.id|stringformat:"i" %}selected{% endif %}>
+                                {{ country.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <!-- Release Year -->
+                    <div class="mb-3">
+                        <label class="form-label">Release Year</label>
+                        <input type="number" name="year" class="form-control" placeholder="e.g. 2020" 
+                               value="{{ selected_year }}">
+                    </div>
+                    
+                    <!-- Sort By -->
+                    <div class="mb-3">
+                        <label class="form-label">Sort By</label>
+                        <select name="sort" class="form-select">
+                            <option value="-date_added" {% if sort == '-date_added' %}selected{% endif %}>Newest First</option>
+                            <option value="date_added" {% if sort == 'date_added' %}selected{% endif %}>Oldest First</option>
+                            <option value="title" {% if sort == 'title' %}selected{% endif %}>Title (A-Z)</option>
+                            <option value="-title" {% if sort == '-title' %}selected{% endif %}>Title (Z-A)</option>
+                            <option value="-release_year" {% if sort == '-release_year' %}selected{% endif %}>Newest Release Year</option>
+                            <option value="release_year" {% if sort == 'release_year' %}selected{% endif %}>Oldest Release Year</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Titles List -->
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">Browse Titles</h4>
+                <form class="d-flex" method="get" action="{% url 'netflix_app:title_list' %}">
+                    <!-- Keep existing filters -->
+                    {% if selected_type %}<input type="hidden" name="type" value="{{ selected_type }}">{% endif %}
+                    {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+                    {% if selected_country %}<input type="hidden" name="country" value="{{ selected_country }}">{% endif %}
+                    {% if selected_year %}<input type="hidden" name="year" value="{{ selected_year }}">{% endif %}
+                    {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+                    
+                    <input class="form-control me-2" type="search" name="q" placeholder="Search titles..." 
+                           value="{{ search_query }}">
+                    <button class="btn btn-primary" type="submit">Search</button>
+                </form>
+            </div>
+            <div class="card-body">
+                <!-- Active filters display -->
+                {% if selected_type or selected_category or selected_country or selected_year or search_query %}
+                <div class="mb-3">
+                    <strong>Active Filters:</strong>
+                    {% if search_query %}
+                    <span class="badge bg-primary me-2">Search: {{ search_query }}</span>
+                    {% endif %}
+                    {% if selected_type %}
+                    <span class="badge bg-info me-2">Type: {{ selected_type }}</span>
+                    {% endif %}
+                    {% if selected_category %}
+                    <span class="badge bg-success me-2">Category: 
+                        {% for category in categories %}
+                            {% if category.id|stringformat:"i" == selected_category %}{{ category.name }}{% endif %}
+                        {% endfor %}
+                    </span>
+                    {% endif %}
+                    {% if selected_country %}
+                    <span class="badge bg-warning text-dark me-2">Country: 
+                        {% for country in countries %}
+                            {% if country.id|stringformat:"i" == selected_country %}{{ country.name }}{% endif %}
+                        {% endfor %}
+                    </span>
+                    {% endif %}
+                    {% if selected_year %}
+                    <span class="badge bg-secondary me-2">Year: {{ selected_year }}</span>
+                    {% endif %}
+                    <a href="{% url 'netflix_app:title_list' %}" class="btn btn-sm btn-outline-danger">Clear All</a>
+                </div>
+                {% endif %}
+                
+                <!-- Title count -->
+                <p class="text-muted">Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ paginator.count }} titles</p>
+                
+                <!-- Titles list -->
+                <div class="list-group">
+                    {% for title in titles %}
+                    <a href="{% url 'netflix_app:title_detail' title.show_id %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ title.title }} <small class="text-muted">({{ title.release_year }})</small></h5>
+                            <span class="badge {% if title.type == 'Movie' %}bg-danger{% else %}bg-success{% endif %}">
+                                {{ title.type }}
+                            </span>
+                        </div>
+                        <p class="mb-1 text-truncate">{{ title.description }}</p>
+                        <small>
+                            {% if title.rating %}<span class="me-2">{{ title.rating }}</span>{% endif %}
+                            {% if title.duration %}<span class="me-2">{{ title.duration }}</span>{% endif %}
+                            <span>Added on {{ title.date_added|date:"M d, Y" }}</span>
+                        </small>
+                    </a>
+                    {% empty %}
+                    <div class="alert alert-info">No titles found matching your criteria.</div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">
+                                First
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">
+                                Previous
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">First</a>
+                        </li>
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active">
+                                <a class="page-link" href="#">{{ num }}</a>
+                            </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">
+                                    {{ num }}
+                                </a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">
+                                Next
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ paginator.num_pages }}">
+                                Last
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Next</a>
+                        </li>
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Last</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

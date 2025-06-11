@@ -1,0 +1,185 @@
+{% extends 'netflix_app/base.html' %}
+
+{% block title %}Advanced Search - Netflix Data{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Advanced Search</h1>
+    
+    <div class="row">
+        <!-- Search Form -->
+        <div class="col-md-4 mb-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header">
+                    <h5 class="mb-0">Search Filters</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{% url 'netflix_app:search' %}">
+                        <div class="mb-3">
+                            <label class="form-label">Search Terms</label>
+                            <input type="text" class="form-control" name="q" placeholder="Title, cast, description..." 
+                                   value="{{ form_data.q }}">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Content Type</label>
+                            <select name="type" class="form-select">
+                                <option value="">Any Type</option>
+                                <option value="Movie" {% if form_data.type == 'Movie' %}selected{% endif %}>Movie</option>
+                                <option value="TV Show" {% if form_data.type == 'TV Show' %}selected{% endif %}>TV Show</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select name="category" class="form-select">
+                                <option value="">Any Category</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if form_data.category == category.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label class="form-label">From Year</label>
+                                <input type="number" class="form-control" name="min_year" placeholder="e.g. 2000"
+                                       value="{{ form_data.min_year }}">
+                            </div>
+                            <div class="col">
+                                <label class="form-label">To Year</label>
+                                <input type="number" class="form-control" name="max_year" placeholder="e.g. 2022"
+                                       value="{{ form_data.max_year }}">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Rating</label>
+                            <select name="rating" class="form-select">
+                                <option value="">Any Rating</option>
+                                {% for rating in ratings %}
+                                <option value="{{ rating }}" {% if form_data.rating == rating %}selected{% endif %}>
+                                    {{ rating }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Country</label>
+                            <select name="country" class="form-select">
+                                <option value="">Any Country</option>
+                                {% for country in countries %}
+                                <option value="{{ country.id }}" {% if form_data.country == country.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ country.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Director</label>
+                            <select name="director" class="form-select">
+                                <option value="">Any Director</option>
+                                {% for director in directors %}
+                                <option value="{{ director.id }}" {% if form_data.director == director.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ director.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">Search</button>
+                        <a href="{% url 'netflix_app:search' %}" class="btn btn-outline-secondary w-100 mt-2">Reset</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Search Results</h5>
+                    <span class="badge bg-primary">{{ paginator.count }} titles found</span>
+                </div>
+                <div class="card-body">
+                    {% if results %}
+                        <div class="list-group">
+                            {% for title in results %}
+                            <a href="{% url 'netflix_app:title_detail' title.show_id %}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ title.title }} ({{ title.release_year }})</h5>
+                                    <small>{{ title.type }}</small>
+                                </div>
+                                <p class="mb-1">
+                                    {% if title.description %}
+                                        {{ title.description|truncatewords:25 }}
+                                    {% else %}
+                                        <em>No description available</em>
+                                    {% endif %}
+                                </p>
+                                <div class="d-flex w-100 justify-content-between">
+                                    <small>
+                                        {% if title.categories.all %}
+                                            {% for category in title.categories.all %}
+                                                <span class="badge bg-secondary me-1">{{ category.name }}</span>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </small>
+                                    <small>Added: {{ title.date_added|date:"M d, Y" }}</small>
+                                </div>
+                            </a>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Pagination -->
+                        {% if is_paginated %}
+                        <nav class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">Previous</a>
+                                </li>
+                                {% endif %}
+                                
+                                <li class="page-item active">
+                                    <span class="page-link">
+                                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                    </span>
+                                </li>
+                                
+                                {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}">Last</a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                        
+                    {% else %}
+                        {% if request.GET %}
+                            <div class="alert alert-info">
+                                <p>No results found for your search criteria. Try adjusting your filters.</p>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-secondary">
+                                <p>Use the search form to find Netflix titles that match your criteria.</p>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

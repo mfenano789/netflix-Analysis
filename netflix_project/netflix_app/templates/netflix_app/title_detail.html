@@ -1,0 +1,117 @@
+{# netflix_app/templates/netflix_app/title_detail.html #}
+
+{% extends 'netflix_app/base.html' %}
+
+{% block title %}{{ title.title }} | Netflix Data Analysis{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'netflix_app:home' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'netflix_app:title_list' %}">Titles</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ title.title }}</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h1 class="card-title">
+                    {{ title.title }}
+                    <span class="badge {% if title.type == 'Movie' %}bg-danger{% else %}bg-success{% endif %}">
+                        {{ title.type }}
+                    </span>
+                </h1>
+                <h5 class="text-muted mb-3">{{ title.release_year }}{% if title.rating %} • {{ title.rating }}{% endif %}{% if title.duration %} • {{ title.duration }}{% endif %}</h5>
+                
+                <h5 class="mt-4">Description</h5>
+                <p>{{ title.description }}</p>
+                
+                {% if title.director_set.all %}
+                <h5 class="mt-4">Director(s)</h5>
+                <p>
+                    {% for director in title.director_set.all %}
+                    <a href="{% url 'netflix_app:search' %}?director={{ director.id }}" class="text-decoration-none">
+                        <span class="badge bg-secondary me-1">{{ director.name }}</span>
+                    </a>
+                    {% endfor %}
+                </p>
+                {% endif %}
+                
+                {% if title.cast %}
+                <h5 class="mt-4">Cast</h5>
+                <p>{{ title.cast }}</p>
+                {% endif %}
+                
+                <h5 class="mt-4">Added to Netflix</h5>
+                <p>{{ title.date_added|date:"F d, Y" }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Categories</h5>
+            </div>
+            <div class="card-body">
+                {% for category in title.categories.all %}
+                <a href="{% url 'netflix_app:title_list' %}?category={{ category.id }}" class="text-decoration-none">
+                    <span class="badge bg-success me-1 mb-1">{{ category.name }}</span>
+                </a>
+                {% empty %}
+                <p class="text-muted">No categories available.</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Countries</h5>
+            </div>
+            <div class="card-body">
+                {% for country in title.countries.all %}
+                <a href="{% url 'netflix_app:title_list' %}?country={{ country.id }}" class="text-decoration-none">
+                    <span class="badge bg-warning text-dark me-1 mb-1">{{ country.name }}</span>
+                </a>
+                {% empty %}
+                <p class="text-muted">No country information available.</p>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">More Like This</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    {% if title.categories.first %}
+                    <a href="{% url 'netflix_app:title_list' %}?category={{ title.categories.first.id }}&type={{ title.type }}" 
+                       class="btn btn-outline-primary">
+                        More {{ title.type }}s in {{ title.categories.first.name }}
+                    </a>
+                    {% endif %}
+                    
+                    {% if title.director_set.first %}
+                    <a href="{% url 'netflix_app:search' %}?director={{ title.director_set.first.id }}" 
+                       class="btn btn-outline-primary">
+                        More by {{ title.director_set.first.name }}
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'netflix_app:title_list' %}?year={{ title.release_year }}" 
+                       class="btn btn-outline-primary">
+                        More from {{ title.release_year }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

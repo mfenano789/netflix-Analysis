@@ -1,0 +1,90 @@
+{% extends 'netflix_app/base.html' %}
+
+{% block title %}Director Analysis - Netflix Data{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Director Analysis</h1>
+    
+    <div class="row">
+        <!-- Chart -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Top Directors by Content Count</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="directorsChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Top Directors</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for director in top_directors %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>{{ director.name }}</span>
+                            <span class="badge bg-primary rounded-pill">{{ director.title_count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Parse the JSON data
+    const directorsData = JSON.parse('{{ directors_data_json|safe }}');
+    
+    // Prepare data for chart
+    const labels = directorsData.map(item => item.name);
+    const counts = directorsData.map(item => item.count);
+    
+    // Create chart
+    const ctx = document.getElementById('directorsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Number of Titles',
+                data: counts,
+                backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Titles'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Director'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

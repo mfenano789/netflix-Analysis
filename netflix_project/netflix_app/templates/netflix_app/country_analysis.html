@@ -1,0 +1,92 @@
+{% extends 'netflix_app/base.html' %}
+
+{% block title %}Country Analysis - Netflix Data{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Country Analysis</h1>
+    
+    <div class="row">
+        <!-- Chart -->
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Countries with Most Content</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="countriesChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Top Countries</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for country in top_countries %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="{% url 'netflix_app:title_list' %}?country={{ country.id }}">
+                                {{ country.name }}
+                            </a>
+                            <span class="badge bg-primary rounded-pill">{{ country.title_count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Parse the JSON data
+    const countriesData = JSON.parse('{{ countries_data_json|safe }}');
+    
+    // Prepare data for chart
+    const labels = countriesData.map(item => item.name);
+    const counts = countriesData.map(item => item.count);
+    
+    // Create chart
+    const ctx = document.getElementById('countriesChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Number of Titles',
+                data: counts,
+                backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Titles'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Country'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
